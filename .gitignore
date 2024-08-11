@@ -1,0 +1,54 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+.env.*
+
+# FastAPI
+*.log
+
+# SQLAlchemy/Migrations
+migrations/versions/*.pyc
+alembic.ini
+
+# Environment Variables
+.env
+*.env
+
+# Database Files
+*.sqlite3
+*.db
+*.pdb
+
+# Docker
+# Ignore Docker files that are specific to your local development environment
+docker-compose.override.yml
+# Ignore Docker container runtime files
+docker-compose.yml
+*.log
+*.pid
+*.pid.lock
+.env.db
+dbdata/
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Byte-compiled / optimized / DLL files
+__py
