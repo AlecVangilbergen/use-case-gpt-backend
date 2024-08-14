@@ -23,3 +23,10 @@ class DocumentRepository(InterfaceDocumentRepository):
             .limit(limit)
         )
         return result.scalars().all()
+    
+    async def add_document(self, document: DocumentSchema) -> None:
+        new_document = Document(**document.dict())
+        self.session.add(new_document)
+        await self.session.commit()
+        await self.session.refresh(new_document)
+        return new_document
