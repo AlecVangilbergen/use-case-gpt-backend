@@ -4,11 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.repositories.document_repository import DocumentRepository
+from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
 from app.services.chat_service import ChatService
+from app.schemas.user import UserCreate
 from app.schemas.document import Document as DocumentSchema
 from app.db.session import async_session_maker as async_session, engine as async_engine
 from app.db.base import Base
 import asyncio
+from dotenv import load_dotenv
+
 
 openai_api_key = os.getenv('OPENAI_API_KEY', 'YourAPIKey')
 
@@ -80,6 +85,14 @@ async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+#USER API
+@app.post("/users/create", status_code=status.HTTP_201_CREATED)
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_async_db)):
+    repo = UserRepository(session=db)
+    service = UserService(user_repo=repo)
+    return await service.create_user(user)
+
     
 
     #TABLE CREATION    
