@@ -6,7 +6,9 @@ from typing import List
 from app.repositories.document_repository import DocumentRepository
 from app.services.chat_service import ChatService
 from app.schemas.document import Document as DocumentSchema
-from app.db.session import async_session_maker as async_session
+from app.db.session import async_session_maker as async_session, engine as async_engine
+from app.db.base import Base
+import asyncio
 
 openai_api_key = os.getenv('OPENAI_API_KEY', 'YourAPIKey')
 
@@ -78,3 +80,17 @@ async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+    #TABLE CREATION    
+async def create_tables():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def startup_event():
+        await create_tables()
+        await asyncio.sleep(5)  # Wait for tables to be created before starting the application
+
+app.add_event_handler("startup", startup_event)
+
