@@ -3,11 +3,13 @@ from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from app.models.user import User
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
 from app.services.chat_service import ChatService
 from app.schemas.user import UserCreate
+from app.schemas.user import User as UserSchema, UserBase
 from app.schemas.document import Document as DocumentSchema
 from app.db.session import async_session_maker as async_session, engine as async_engine
 from app.db.base import Base
@@ -87,6 +89,13 @@ async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db
         raise HTTPException(status_code=500, detail=str(e))
     
 #USER API
+
+@app.get("/users", response_model=List[UserBase])
+async def get_users(db: AsyncSession = Depends(get_async_db)):
+    repo = UserRepository(session=db)
+    service = UserService(user_repo=repo)
+    return await service.get_users()
+
 @app.post("/users/create", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_async_db)):
     repo = UserRepository(session=db)

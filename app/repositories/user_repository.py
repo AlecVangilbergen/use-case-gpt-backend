@@ -1,6 +1,6 @@
 from typing import List, Protocol, Optional
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserCreate
+from app.schemas.user import User as UserSchema, UserBase, UserCreate
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -25,6 +25,11 @@ class UserRepository(InterfaceUserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    async def get_users(self) -> List[UserBase]:
+        result = await self.session.execute(select(User))
+        users = result.scalars().all()
+        return [UserSchema.from_orm(user) for user in users]
 
     async def get_user_by_email(self, email: str) -> Optional[UserSchema]:
         result = await self.session.execute(select(User).where(User.email == email))
