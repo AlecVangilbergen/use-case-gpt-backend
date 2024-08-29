@@ -6,6 +6,11 @@ class UserBase(BaseModel):
     email: str
     is_active: bool
 
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 class UserCreate(UserBase):
     email: str
     password: str
@@ -30,3 +35,12 @@ class User(BaseModel):
     class Config:
         orm_mode = True
         from_attributes=True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: str
+    user_type: str

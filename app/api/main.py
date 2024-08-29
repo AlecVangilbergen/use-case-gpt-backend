@@ -1,20 +1,30 @@
 import os
 from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.models.user import User
 from app.repositories.document_repository import DocumentRepository
+from app.repositories.auth_repository import AuthRepository
+from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
 from app.services.chat_service import ChatService
 from app.schemas.user import UserCreate
-from app.schemas.user import User as UserSchema, UserBase
+from app.schemas.user import User as UserSchema, UserBase, UserLogin, Token
 from app.schemas.document import Document as DocumentSchema
 from app.db.session import async_session_maker as async_session, engine as async_engine
 from app.db.base import Base
 import asyncio
 from dotenv import load_dotenv
+from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
+
+from dotenv import load_dotenv
+
 
 
 openai_api_key = os.getenv('OPENAI_API_KEY', 'YourAPIKey')
@@ -39,6 +49,31 @@ def db_dependency():
 @app.get("/")
 async def root():
     return {"message": "Welcome to the API, made with FastAPI!!"}
+
+
+#AUTH API
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+auth_repo = AuthRepository()
+auth_service = AuthService(auth_repo)
+
+@app.post("/login", response_model=Token)
+async def login(user: UserLogin, db: AsyncSession = Depends(get_async_db)):
+    user = await auth_service.authenticate_user(db, user.email, user.password)
+    access_token = auth_service.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+    
+
+@app.post("/logout", status_code=status.HTTP_200_OK)
+async def logout():
+    """
+    Logout a user.
+
+    Returns:
+        dict: A dictionary containing a success message.
+    """
+    return {"message": "Logout successful"}
+
 
 @app.post("/documents/upload", status_code=status.HTTP_201_CREATED)
 async def upload_document(file: UploadFile = File(...), db: AsyncSession = Depends(get_async_db)):
