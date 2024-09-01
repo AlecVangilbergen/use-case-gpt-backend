@@ -4,7 +4,7 @@ from app.db.base import Base
 
 class UserBase(BaseModel):
     email: str
-    is_active: bool
+    prompt: str
 
 
 class UserLogin(BaseModel):
@@ -14,6 +14,7 @@ class UserLogin(BaseModel):
 class UserCreate(UserBase):
     email: str
     password: str
+    prompt: str
 
 class UserUpdate(UserBase):
     pass
@@ -27,10 +28,9 @@ class UserDB(UserBase):
 class User(BaseModel):
     id: int
     email: str
-    is_active: bool
     hashed_password: str
+    prompt: str
     is_superuser: bool
-    is_verified: bool
 
     class Config:
         orm_mode = True

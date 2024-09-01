@@ -47,7 +47,7 @@ class UserRepository(InterfaceUserRepository):
 
     async def create_user(self, user: UserCreate) -> UserSchema:
         hashed_password = self.pwd_context.hash(user.password)
-        new_user = User(email=user.email, hashed_password=hashed_password)
+        new_user = User(email=user.email, hashed_password=hashed_password, prompt=user.prompt)
         self.session.add(new_user)
         await self.session.commit()
         await self.session.refresh(new_user)
