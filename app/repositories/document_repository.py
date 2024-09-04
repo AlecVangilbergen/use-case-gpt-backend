@@ -25,6 +25,13 @@ class DocumentRepository(InterfaceDocumentRepository):
         )
         return result.scalars().all()
     
+    async def get_documents_by_user_id(self, user_id: int) -> List[Document]:
+        result = await self.session.execute(
+            select(Document)
+            .where(Document.user_id == user_id)
+        )
+        return result.scalars().all()
+    
     async def add_document(self, document: DocumentSchema) -> Document:
         # Generate embedding for the document content
         embedding = await generate_embeddings(document.content)

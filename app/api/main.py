@@ -14,6 +14,7 @@ from app.services.chat_service import ChatService
 from app.schemas.user import UserCreate
 from app.schemas.user import User as UserSchema, UserBase, UserLogin, Token
 from app.schemas.document import Document as DocumentSchema
+from app.schemas.document import Document
 from app.db.session import async_session_maker as async_session, engine as async_engine
 from app.db.base import Base
 import asyncio
@@ -76,28 +77,43 @@ async def logout():
 
 
 @app.post("/documents/upload", status_code=status.HTTP_201_CREATED)
-async def upload_document(file: UploadFile = File(...), db: AsyncSession = Depends(get_async_db)):
+async def upload_document(user_id: int, db: AsyncSession = Depends(get_async_db), file: UploadFile = File(...)):
     """
     Upload a new document.
 
     Args:
         file (UploadFile): The document file to be uploaded.
+        user_id (int): The user's ID.
         db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
 
     Returns:
-        dict: A dictionary containing a success message if the document is uploaded successfully.
-
-    Raises:
-        HTTPException: If there is an error uploading the document.
+        dict: The uploaded document details.
     """
     try:
         content = await file.read()
-        document = DocumentSchema(content=content.decode('utf-8'))
+        document_data = DocumentSchema(content=content.decode('utf-8'), user_id=user_id)
         repo = DocumentRepository(session=db)
-        await repo.add_document(document)
-        return {"message": "Document uploaded successfully"}
+        new_document = await repo.add_document(document_data)
+        return new_document
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/documents", response_model=List[Document])
+async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    """
+    Fetch the documents for a specific user.
+
+    Args:
+        user_id (int): The user's ID.
+        db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        List[Document]: A list of documents for the user.
+    """
+    repo = DocumentRepository(session=db)
+    documents = await repo.get_documents_by_user_id(user_id)
+    return documents
+
 
 @app.post("/chat", status_code=status.HTTP_200_OK)
 async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db)):
