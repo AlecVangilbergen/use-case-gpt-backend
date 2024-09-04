@@ -6,6 +6,7 @@ from typing import List, Protocol
 from app.models.document import Document
 from app.schemas.document import Document as DocumentSchema
 from dataclasses import dataclass
+from app.services.openai_service import generate_embeddings
 
 class InterfaceDocumentRepository(Protocol):
     async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentSchema]:
@@ -24,9 +25,18 @@ class DocumentRepository(InterfaceDocumentRepository):
         )
         return result.scalars().all()
     
-    async def add_document(self, document: DocumentSchema) -> None:
-        new_document = Document(**document.dict())
+    async def add_document(self, document: DocumentSchema) -> Document:
+        # Generate embedding for the document content
+        embedding = await generate_embeddings(document.content)
+        
+        # Create the new document with the generated embedding
+        new_document = Document(
+            content=document.content,
+            vector_embedding=embedding,
+            user_id=document.user_id
+        )
         self.session.add(new_document)
         await self.session.commit()
         await self.session.refresh(new_document)
         return new_document
+
