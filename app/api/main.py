@@ -27,6 +27,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.schemas.chat import ChatRequest
+from docx import Document as DocxDocument
+import fitz  # PyMuPDF.
+import io
 
 from dotenv import load_dotenv
 
@@ -87,12 +90,35 @@ async def upload_document(file: UploadFile = File(...), user_id: int = Form(...)
     """
     try:
         content = await file.read()
-        document = DocumentCreate(content=content.decode('utf-8'), user_id=user_id)
+        file_type = file.content_type
+
+        if file_type == "text/plain":
+            text_content = content.decode('utf-8')
+        elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            text_content = extract_text_from_docx(content)
+        elif file_type == "application/pdf":
+            text_content = extract_text_from_pdf(content)
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
+
+        document = DocumentCreate(content=text_content, user_id=user_id)
         repo = DocumentRepository(session=db)
         await repo.add_document(document)
         return {"message": "Document uploaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+def extract_text_from_docx(content: bytes) -> str:
+    doc = DocxDocument(io.BytesIO(content))
+    return "\n".join([para.text for para in doc.paragraphs])
+
+def extract_text_from_pdf(content: bytes) -> str:
+    pdf_document = fitz.open(stream=content, filetype="pdf")
+    text = ""
+    for page_num in range(len(pdf_document)):
+        page = pdf_document.load_page(page_num)
+        text += page.get_text()
+    return text
     
 @app.get("/documents/id/{user_id}", response_model=List[DocumentOut])
 async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):

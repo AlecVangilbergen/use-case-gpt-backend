@@ -16,13 +16,21 @@ class InterfaceDocumentRepository(Protocol):
 class DocumentRepository(InterfaceDocumentRepository):
     session: AsyncSession
 
-    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentOut]:
+    async def get_documents_by_similarity(self, user_id: int, embedding: List[float]) -> List[DocumentOut]:
+    # Query the count of documents for the given user_id
+        count_result = await self.session.execute(
+        select(func.count(Document.id))
+        .where(Document.user_id == user_id)
+    )
+        document_count = count_result.scalar()
+
+    # Use the document count as the limit in the similarity query
         result = await self.session.execute(
-            select(Document)
-            .where(Document.user_id == user_id)
-            .order_by(Document.vector_embedding.cosine_distance(embedding).desc())
-            .limit(limit)
-        )
+        select(Document)
+        .where(Document.user_id == user_id)
+        .order_by(Document.vector_embedding.cosine_distance(embedding).desc())
+        .limit(document_count)
+    )
         return result.scalars().all()
     
     async def get_documents_by_user_id(self, user_id: int) -> List[DocumentOut]:
