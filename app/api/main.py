@@ -13,7 +13,7 @@ from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
 from app.services.chat_service import ChatService
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserOut
 from app.schemas.user import User as UserSchema, UserBase, UserLogin, Token
 from app.schemas.document import Document as DocumentSchema, DocumentOut, DocumentCreate
 from app.schemas.document import Document
@@ -162,6 +162,13 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_async_db)
     repo = UserRepository(session=db)
     service = UserService(user_repo=repo)
     return await service.create_user(user)
+
+@app.get("/users/email/{email}", response_model=UserOut)
+async def get_user_by_email(email: str, db: AsyncSession = Depends(get_async_db)):
+    repo = UserRepository(session=db)
+    service = UserService(user_repo=repo)
+    return await service.get_user_by_email(email)
+
 
     
 

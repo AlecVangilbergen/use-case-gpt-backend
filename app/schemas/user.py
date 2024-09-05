@@ -17,9 +17,10 @@ class UserCreate(UserBase):
     prompt: str
 
 class UserOut(BaseModel):
+    id: int
     email: str
     prompt: str
-    
+
 
 class UserUpdate(UserBase):
     pass

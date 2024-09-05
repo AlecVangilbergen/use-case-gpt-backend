@@ -34,7 +34,7 @@ class UserRepository(InterfaceUserRepository):
         users = result.scalars().all()
         return [UserSchema.from_orm(user) for user in users]
 
-    async def get_user_by_email(self, email: str) -> Optional[UserSchema]:
+    async def get_user_by_email(self, email: str) -> Optional[UserOut]:
         result = await self.session.execute(select(User).where(User.email == email))
         user = result.scalars().first()
         if user:
