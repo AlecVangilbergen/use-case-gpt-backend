@@ -9,14 +9,14 @@ from dataclasses import dataclass
 from app.services.openai_service import generate_embeddings
 
 class InterfaceDocumentRepository(Protocol):
-    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentSchema]:
+    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentOut]:
         ...
 
 @dataclass
 class DocumentRepository(InterfaceDocumentRepository):
     session: AsyncSession
 
-    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[Document]:
+    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentOut]:
         result = await self.session.execute(
             select(Document)
             .where(Document.user_id == user_id)

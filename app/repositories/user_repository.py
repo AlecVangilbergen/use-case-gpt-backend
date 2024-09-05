@@ -1,6 +1,6 @@
 from typing import List, Protocol, Optional
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserBase, UserCreate
+from app.schemas.user import User as UserSchema, UserBase, UserCreate, UserOut
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -13,6 +13,9 @@ class InterfaceUserRepository(Protocol):
         ...
 
     async def create_user(self, user: UserSchema) -> UserSchema:
+        ...
+
+    async def get_prompt_by_id(self, user_id: int) -> str:
         ...
 
     async def update_user(self, user: UserSchema) -> UserSchema:
@@ -38,7 +41,7 @@ class UserRepository(InterfaceUserRepository):
             return UserSchema.from_orm(user)
         return None
 
-    async def get_user_by_id(self, user_id: int) -> Optional[UserSchema]:
+    async def get_user_by_id(self, user_id: int) -> Optional[UserOut]:
         result = await self.session.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
         if user:
@@ -52,3 +55,7 @@ class UserRepository(InterfaceUserRepository):
         await self.session.commit()
         await self.session.refresh(new_user)
         return UserSchema.from_orm(new_user)
+
+    async def get_prompt_by_id(self, user_id: int) -> str:
+        result = await self.session.execute(select(User.prompt).where(User.id == user_id))
+        return result.scalars().first()

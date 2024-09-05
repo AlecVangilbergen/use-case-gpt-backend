@@ -16,6 +16,11 @@ class UserCreate(UserBase):
     password: str
     prompt: str
 
+class UserOut(BaseModel):
+    email: str
+    prompt: str
+    
+
 class UserUpdate(UserBase):
     pass
 
