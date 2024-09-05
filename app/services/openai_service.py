@@ -12,7 +12,7 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 async def generate_embeddings(query: str, model: str = "text-embedding-ada-002") -> List[float]:
     try:
         response = await client.embeddings.create(input=query, model=model)
-        return response['data'][0]['embedding']
+        return response.data[0].embedding
     except openai.OpenAIError as e:
         # Handle errors (e.g., logging, raising HTTPException, etc.)
         print(f"Error generating embeddings: {str(e)}")

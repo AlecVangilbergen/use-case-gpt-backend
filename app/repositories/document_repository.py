@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from typing import List, Protocol
 from app.models.document import Document
-from app.schemas.document import Document as DocumentSchema
+from app.schemas.document import Document as DocumentSchema, DocumentCreate
 from dataclasses import dataclass
 from app.services.openai_service import generate_embeddings
 
@@ -32,7 +32,11 @@ class DocumentRepository(InterfaceDocumentRepository):
         )
         return result.scalars().all()
     
-    async def add_document(self, document: DocumentSchema) -> Document:
+    async def get_all_documents(self) -> List[Document]:
+        result = await self.session.execute(select(Document))
+        return result.scalars().all()
+    
+    async def add_document(self, document: DocumentCreate) -> Document:
         # Generate embedding for the document content
         embedding = await generate_embeddings(document.content)
         

@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
+from fastapi import FastAPI, Depends, Form, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +13,9 @@ from app.services.user_service import UserService
 from app.services.chat_service import ChatService
 from app.schemas.user import UserCreate
 from app.schemas.user import User as UserSchema, UserBase, UserLogin, Token
-from app.schemas.document import Document as DocumentSchema
+from app.schemas.document import Document as DocumentSchema, DocumentOut, DocumentCreate
 from app.schemas.document import Document
+from app.services.document_service import DocumentService
 from app.db.session import async_session_maker as async_session, engine as async_engine
 from app.db.base import Base
 import asyncio
@@ -34,7 +35,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Adjust this as necessary
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,24 +78,16 @@ async def logout():
 
 
 @app.post("/documents/upload", status_code=status.HTTP_201_CREATED)
-async def upload_document(user_id: int, db: AsyncSession = Depends(get_async_db), file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), user_id: int = Form(...), db: AsyncSession = Depends(get_async_db)):
     """
-    Upload a new document.
-
-    Args:
-        file (UploadFile): The document file to be uploaded.
-        user_id (int): The user's ID.
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
-
-    Returns:
-        dict: The uploaded document details.
+    Upload a new document along with the user_id in the form data.
     """
     try:
         content = await file.read()
-        document_data = DocumentSchema(content=content.decode('utf-8'), user_id=user_id)
+        document = DocumentCreate(content=content.decode('utf-8'), user_id=user_id)
         repo = DocumentRepository(session=db)
-        new_document = await repo.add_document(document_data)
-        return new_document
+        await repo.add_document(document)
+        return {"message": "Document uploaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -114,6 +107,21 @@ async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):
     documents = await repo.get_documents_by_user_id(user_id)
     return documents
 
+@app.get("/documents/all", response_model=List[DocumentOut])
+async def get_all_documents(db: AsyncSession = Depends(get_async_db)):
+    """
+    Fetch all documents.
+
+    Args:
+        db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        List[Document]: A list of all documents.
+    """
+    repo = DocumentRepository(session=db)
+    service = DocumentService(document_repo=repo)
+    documents = await service.get_all_documents()
+    return documents
 
 @app.post("/chat", status_code=status.HTTP_200_OK)
 async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db)):
