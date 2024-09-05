@@ -28,5 +28,5 @@ class ChatService:
            # Construct the prompt with a system message        
         system_prompt = await self.user_repo.get_prompt_by_id(user_id)
         prompt = f"{system_prompt}\n\nContext:\n{context}\n\nQuestion: {query}"
-        response = await self.generate_response(prompt)
+        response = await self.generate_response(prompt, query)
         return {"response": response}

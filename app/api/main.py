@@ -1,9 +1,11 @@
 import os
+from pydoc import doc
 from fastapi import FastAPI, Depends, Form, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from app.models import document
 from app.models.user import User
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.auth_repository import AuthRepository
@@ -24,6 +26,7 @@ from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from app.schemas.chat import ChatRequest
 
 from dotenv import load_dotenv
 
@@ -123,13 +126,12 @@ async def get_all_documents(db: AsyncSession = Depends(get_async_db)):
     return documents
 
 @app.post("/chat", status_code=status.HTTP_200_OK)
-async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db)):
+async def chat(request: ChatRequest, db: AsyncSession = Depends(get_async_db)):
     """
     Chat with the assistant using retrieval-augmented generation (RAG).
 
     Args:
-        query (str): The user's query.
-        user_id (int): The user's ID.
+        request (ChatRequest): The request body containing the user's query and user ID.
         db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
 
     Returns:
@@ -139,13 +141,14 @@ async def chat(query: str, user_id: int, db: AsyncSession = Depends(get_async_db
         HTTPException: If there is an error during the chat process.
     """
     try:
-        repo = DocumentRepository(session=db)
-        service = ChatService(document_repo=repo)
-        response = await service.chat_with_rag(query, user_id)
+        document_repo = DocumentRepository(session=db)
+        user_repo = UserRepository(session=db)
+        service = ChatService(document_repo=document_repo, user_repo=user_repo)
+        response = await service.chat_with_rag(request.query, request.user_id)
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 #USER API
 
 @app.get("/users", response_model=List[UserBase])

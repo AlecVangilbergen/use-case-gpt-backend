@@ -27,7 +27,7 @@ async def chat_with_gpt(context: str, query: str, model: str = "gpt-4") -> str:
                 {"role": "user", "content": query}
             ]
         )
-        return response['choices'][0]['message']['content']
+        return response.choices[0].message.content
     except openai.OpenAIError as e:
         # Handle errors (e.g., logging, raising HTTPException, etc.)
         print(f"Error during chat completion: {str(e)}")
