@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from typing import List, Protocol
 from app.models.document import Document
-from app.schemas.document import Document as DocumentSchema, DocumentCreate
+from app.schemas.document import Document as DocumentSchema, DocumentCreate, DocumentOut
 from dataclasses import dataclass
 from app.services.openai_service import generate_embeddings
 
@@ -25,7 +25,7 @@ class DocumentRepository(InterfaceDocumentRepository):
         )
         return result.scalars().all()
     
-    async def get_documents_by_user_id(self, user_id: int) -> List[Document]:
+    async def get_documents_by_user_id(self, user_id: int) -> List[DocumentOut]:
         result = await self.session.execute(
             select(Document)
             .where(Document.user_id == user_id)

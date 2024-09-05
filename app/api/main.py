@@ -91,7 +91,7 @@ async def upload_document(file: UploadFile = File(...), user_id: int = Form(...)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get("/documents", response_model=List[Document])
+@app.get("/documents/id/{user_id}", response_model=List[DocumentOut])
 async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):
     """
     Fetch the documents for a specific user.
@@ -104,9 +104,8 @@ async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):
         List[Document]: A list of documents for the user.
     """
     repo = DocumentRepository(session=db)
-    documents = await repo.get_documents_by_user_id(user_id)
-    return documents
-
+    return await repo.get_documents_by_user_id(user_id)
+     
 @app.get("/documents/all", response_model=List[DocumentOut])
 async def get_all_documents(db: AsyncSession = Depends(get_async_db)):
     """

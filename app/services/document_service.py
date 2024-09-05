@@ -1,3 +1,4 @@
+from pydoc import Doc
 from app.models.document import Document
 from app.repositories.document_repository import DocumentRepository
 from app.schemas.document import Document as DocumentSchema, DocumentOut
@@ -11,7 +12,7 @@ class DocumentService():
     async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentSchema]:
         return await self.document_repo.get_documents_by_similarity(user_id, embedding, limit)
 
-    async def get_documents_by_user_id(self, user_id: int) -> List[DocumentSchema]:
+    async def get_documents_by_user_id(self, user_id: int) -> List[DocumentOut]:
         return await self.document_repo.get_documents_by_user_id(user_id)
 
     async def get_all_documents(self) -> List[DocumentOut]:
