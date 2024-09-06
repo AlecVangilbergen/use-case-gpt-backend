@@ -21,7 +21,6 @@ class Document(DocumentBase):
     id: int
     user_id: int
     name: str
-    file_type: str
 
     class Config:
         orm_mode = True
