@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+databases
+aiofiles
+python-multipart
+pydantic
+fitz  # for PyMuPDF
+python-docx
