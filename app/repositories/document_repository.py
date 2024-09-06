@@ -33,6 +33,13 @@ class DocumentRepository(InterfaceDocumentRepository):
     )
         return result.scalars().all()
     
+    async def get_document_by_id(self, document_id: int) -> DocumentOut:
+        result = await self.session.execute(
+            select(Document)
+            .where(Document.id == document_id)
+        )
+        return result.scalars().first()
+    
     async def get_documents_by_user_id(self, user_id: int) -> List[DocumentOut]:
         result = await self.session.execute(
             select(Document)
@@ -50,6 +57,7 @@ class DocumentRepository(InterfaceDocumentRepository):
         
         # Create the new document with the generated embedding
         new_document = Document(
+            name=document.name,
             content=document.content,
             vector_embedding=embedding,
             user_id=document.user_id

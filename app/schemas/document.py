@@ -9,6 +9,7 @@ class DocumentBase(BaseModel):
 
 
 class DocumentCreate(BaseModel):
+    name: str
     content: str
     user_id: Optional[int]  # Optional if user_id is set by the backend
 
@@ -18,6 +19,7 @@ class DocumentCreate(BaseModel):
 class Document(DocumentBase):
     id: int
     user_id: int
+    name: str
 
     class Config:
         orm_mode = True
@@ -31,6 +33,7 @@ class DocumentSchema(BaseModel):
 
 class DocumentOut(BaseModel):
     id: int
+    name: str
     user_id: int
     content: str
 

@@ -20,3 +20,7 @@ class DocumentService():
 
     async def add_document(self, document: DocumentSchema) -> DocumentSchema:
         return await self.document_repo.add_document(document)
+    
+    async def get_document_by_id(self, document_id: int) -> DocumentOut:
+        return await self.document_repo.get_document_by_id(document_id)
+    

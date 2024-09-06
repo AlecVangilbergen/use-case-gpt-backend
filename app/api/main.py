@@ -84,7 +84,7 @@ async def logout():
 
 
 @app.post("/documents/upload", status_code=status.HTTP_201_CREATED)
-async def upload_document(file: UploadFile = File(...), user_id: int = Form(...), db: AsyncSession = Depends(get_async_db)):
+async def upload_document(file: UploadFile = File(...), user_id: int = Form(...), name: str = Form(...), db: AsyncSession = Depends(get_async_db)):
     """
     Upload a new document along with the user_id in the form data.
     """
@@ -101,7 +101,7 @@ async def upload_document(file: UploadFile = File(...), user_id: int = Form(...)
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
-        document = DocumentCreate(content=text_content, user_id=user_id)
+        document = DocumentCreate(content=text_content, user_id=user_id, name=name)
         repo = DocumentRepository(session=db)
         await repo.add_document(document)
         return {"message": "Document uploaded successfully"}
@@ -133,7 +133,24 @@ async def get_documents(user_id: int, db: AsyncSession = Depends(get_async_db)):
         List[Document]: A list of documents for the user.
     """
     repo = DocumentRepository(session=db)
-    return await repo.get_documents_by_user_id(user_id)
+    service = DocumentService(document_repo=repo)
+    return await service.get_documents_by_user_id(user_id)
+
+@app.get("/documents/document/{document_id}", response_model=DocumentOut)
+async def get_document(document_id: int, db: AsyncSession = Depends(get_async_db)):
+    """
+    Fetch a document by its ID.
+
+    Args:
+        document_id (int): The document's ID.
+        db (AsyncSession, optional): The database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        Document: The document.
+    """
+    repo = DocumentRepository(session=db)
+    service = DocumentService(document_repo=repo)
+    return await service.get_document_by_id(document_id)
      
 @app.get("/documents/all", response_model=List[DocumentOut])
 async def get_all_documents(db: AsyncSession = Depends(get_async_db)):
