@@ -30,6 +30,10 @@ from app.schemas.chat import ChatRequest
 from docx import Document as DocxDocument
 import fitz  # PyMuPDF.
 import io
+from fastapi.responses import StreamingResponse
+from fpdf import FPDF
+
+
 
 from dotenv import load_dotenv
 
@@ -167,6 +171,55 @@ async def get_all_documents(db: AsyncSession = Depends(get_async_db)):
     service = DocumentService(document_repo=repo)
     documents = await service.get_all_documents()
     return documents
+
+@app.get("/documents/{document_id}/download")
+async def download_document(document_id: int, db: AsyncSession = Depends(get_async_db)):
+    repo = DocumentRepository(session=db)
+    document = await repo.get_document_by_id(document_id)
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Recreate the file from the text content
+    file_content = document.content
+    file_type = document.file_type
+    file_name = document.name
+
+    if file_type == "text/plain":
+        file_bytes = file_content.encode('utf-8')
+    elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        file_bytes = create_docx_from_text(file_content)
+    elif file_type == "application/pdf":
+        file_bytes = create_pdf_from_text(file_content)
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    return StreamingResponse(io.BytesIO(file_bytes), media_type=file_type, headers={"Content-Disposition": f"attachment; filename={file_name}"})
+
+def create_pdf_from_text(text: str) -> bytes:
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+
+    for line in text.split('\n'):
+        pdf.multi_cell(0, 10, line.encode('latin-1', 'replace').decode('latin-1'))
+
+    pdf_output = io.BytesIO()
+    pdf_output.write(pdf.output(dest='S').encode('latin-1'))
+    pdf_output.seek(0)
+    return pdf_output.read()
+
+def create_docx_from_text(text: str) -> bytes:
+    from docx import Document
+    doc = Document()
+    for line in text.split('\n'):
+        doc.add_paragraph(line)
+    
+    doc_output = io.BytesIO()
+    doc.save(doc_output)
+    doc_output.seek(0)
+    return doc_output.read()
 
 @app.post("/chat", status_code=status.HTTP_200_OK)
 async def chat(request: ChatRequest, db: AsyncSession = Depends(get_async_db)):
