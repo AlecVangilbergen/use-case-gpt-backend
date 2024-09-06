@@ -58,6 +58,7 @@ class DocumentRepository(InterfaceDocumentRepository):
         # Create the new document with the generated embedding
         new_document = Document(
             name=document.name,
+            file_type = document.file_type,
             content=document.content,
             vector_embedding=embedding,
             user_id=document.user_id

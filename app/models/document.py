@@ -10,5 +10,6 @@ class Document(Base):
     name = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="documents")
+    file_type = Column(String, nullable=False)
     content = Column(String, nullable=False)
     vector_embedding = Column(Vector(1536))  # Assuming 1536-dimensional embeddings

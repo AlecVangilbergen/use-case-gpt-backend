@@ -101,7 +101,7 @@ async def upload_document(file: UploadFile = File(...), user_id: int = Form(...)
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
-        document = DocumentCreate(content=text_content, user_id=user_id, name=name)
+        document = DocumentCreate(content=text_content, user_id=user_id, name=name, file_type=file_type)
         repo = DocumentRepository(session=db)
         await repo.add_document(document)
         return {"message": "Document uploaded successfully"}
