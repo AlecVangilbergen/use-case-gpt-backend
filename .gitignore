@@ -24,9 +24,7 @@ alembic.ini
 
 # Docker
 # Ignore Docker files that are specific to your local development environment
-docker-compose.override.yml
 # Ignore Docker container runtime files
-docker-compose.yml
 *.log
 *.pid
 *.pid.lock
