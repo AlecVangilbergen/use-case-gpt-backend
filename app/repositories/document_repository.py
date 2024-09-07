@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from app.services.openai_service import generate_embeddings
 
 class InterfaceDocumentRepository(Protocol):
-    async def get_documents_by_similarity(self, user_id: int, embedding: List[float], limit: int = 3) -> List[DocumentOut]:
+    async def get_documents_by_similarity(self, user_id: int, embedding: List[float]) -> List[DocumentOut]:
         ...
 
 @dataclass
