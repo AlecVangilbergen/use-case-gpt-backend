@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   db:
     image: ankane/pgvector:latest
@@ -16,7 +16,8 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/use_case_gpt
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/use-case-gpt
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8000:8000"
     networks:
