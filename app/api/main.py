@@ -35,6 +35,7 @@ from fpdf import FPDF
 
 
 
+
 from dotenv import load_dotenv
 
 
@@ -43,9 +44,10 @@ openai_api_key = os.getenv('OPENAI_API_KEY', 'YourAPIKey')
 
 app = FastAPI()
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this as necessary
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

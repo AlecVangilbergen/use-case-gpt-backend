@@ -8,6 +8,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    networks:
+      - use-case-gpt-network
 
   app:
     image: use-case-gpt-backend
@@ -17,3 +19,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/use_case_gpt
     ports:
       - "8000:8000"
+    networks:
+      - use-case-gpt-network
+
+networks:
+  use-case-gpt-network:
