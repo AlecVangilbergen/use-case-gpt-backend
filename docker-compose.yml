@@ -12,7 +12,7 @@ services:
       - use-case-gpt-network
 
   app:
-    image: use-case-gpt-backend
+    image: use-case-gpt-backend:latest
     depends_on:
       - db
     environment:
